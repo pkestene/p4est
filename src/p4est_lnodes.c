@@ -2785,9 +2785,8 @@ int
 p4est_lnodes_is_valid (p4est_lnodes_t * lnodes)
 {
   sc_array_t          array;
-  int                 mpisize, mpirank;
+  int                 mpirank;
 
-  MPI_Comm_size (lnodes->mpicomm, &mpisize);
   MPI_Comm_rank (lnodes->mpicomm, &mpirank);
 
   if (lnodes->owned_count != lnodes->global_owned_count[mpirank])
@@ -2798,11 +2797,5 @@ p4est_lnodes_is_valid (p4est_lnodes_t * lnodes)
     return 0;
   if (!sc_array_is_sorted (lnodes->sharers, p4est_lnodes_rank_compare))
     return 0;
-  /*
-     owned_count==global_owned_count[rank]???; check
-     nonlocal_nodes is sorted (has num_local_nodes-owned_count elements); check
-     sharers is sorted; check
-     face_code??;
-     element_nodes???; */
   return 1;
 }
