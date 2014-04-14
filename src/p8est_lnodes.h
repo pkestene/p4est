@@ -125,6 +125,8 @@ typedef struct p8est_lnodes_rank
 }
 p8est_lnodes_rank_t;
 
+int                 p8est_lnodes_is_valid (p8est_lnodes_t * lnodes);
+
 /** Decode the face_code into hanging face information.
  *
  * This is mostly for demonstration purposes.  Applications probably will

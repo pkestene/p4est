@@ -335,6 +335,7 @@
 #define p4est_nodes_is_valid            p8est_nodes_is_valid
 
 /* functions in p4est_lnodes */
+#define p4est_lnodes_is_valid           p8est_lnodes_is_valid
 #define p4est_lnodes_new                p8est_lnodes_new
 #define p4est_lnodes_destroy            p8est_lnodes_destroy
 #define p4est_lnodes_decode             p8est_lnodes_decode
@@ -345,6 +346,7 @@
 #define p4est_lnodes_share_all_end      p8est_lnodes_share_all_end
 #define p4est_lnodes_share_all          p8est_lnodes_share_all
 #define p4est_lnodes_buffer_destroy     p8est_lnodes_buffer_destroy
+#define p4est_lnodes_rank_compare       p8est_lnodes_rank_compare
 #define p4est_lnodes_rank_array_index   p8est_lnodes_rank_array_index
 #define p4est_lnodes_rank_array_index_int p8est_lnodes_rank_array_index_int
 #define p4est_lnodes_global_index       p8est_lnodes_global_index

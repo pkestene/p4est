@@ -2771,3 +2771,38 @@ p4est_lnodes_buffer_destroy (p4est_lnodes_buffer_t * buffer)
   }
   P4EST_FREE (buffer);
 }
+
+int
+p4est_lnodes_rank_compare (const void *v1, const void *v2)
+{
+  const p4est_lnodes_rank_t *r1 = (p4est_lnodes_rank_t *) v1;
+  const p4est_lnodes_rank_t *r2 = (p4est_lnodes_rank_t *) v2;
+
+  return sc_int_compare (&r1->rank, &r2->rank);
+}
+
+int
+p4est_lnodes_is_valid (p4est_lnodes_t * lnodes)
+{
+  sc_array_t          array;
+  int                 mpisize, mpirank;
+
+  MPI_Comm_size (lnodes->mpicomm, &mpisize);
+  MPI_Comm_rank (lnodes->mpicomm, &mpirank);
+
+  if (lnodes->owned_count != lnodes->global_owned_count[mpirank])
+    return 0;
+  sc_array_init_data (&array, lnodes->nonlocal_nodes, sizeof (p4est_gloidx_t),
+                      (size_t) lnodes->num_local_nodes - lnodes->owned_count);
+  if (!sc_array_is_sorted (&array, p4est_gloidx_compare))
+    return 0;
+  if (!sc_array_is_sorted (lnodes->sharers, p4est_lnodes_rank_compare))
+    return 0;
+  /*
+     owned_count==global_owned_count[rank]???; check
+     nonlocal_nodes is sorted (has num_local_nodes-owned_count elements); check
+     sharers is sorted; check
+     face_code??;
+     element_nodes???; */
+  return 1;
+}
