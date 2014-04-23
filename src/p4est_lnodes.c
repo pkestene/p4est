@@ -2773,29 +2773,93 @@ p4est_lnodes_buffer_destroy (p4est_lnodes_buffer_t * buffer)
 }
 
 int
-p4est_lnodes_rank_compare (const void *v1, const void *v2)
-{
-  const p4est_lnodes_rank_t *r1 = (p4est_lnodes_rank_t *) v1;
-  const p4est_lnodes_rank_t *r2 = (p4est_lnodes_rank_t *) v2;
-
-  return sc_int_compare (&r1->rank, &r2->rank);
-}
-
-int
 p4est_lnodes_is_valid (p4est_lnodes_t * lnodes)
 {
   sc_array_t          array;
-  int                 mpirank;
+  int                 mpirank, i, j, temprank;
+  p4est_lnodes_rank_t *r1;
+  p4est_gloidx_t      owned_count_sum;
+  p4est_locidx_t      tempshared_node;
 
   MPI_Comm_rank (lnodes->mpicomm, &mpirank);
 
+  if (lnodes->degree < 1 || lnodes->owned_count < 0
+      || lnodes->num_local_nodes < lnodes->owned_count
+      || lnodes->global_offset < 0 || lnodes->num_local_elements < 0)
+    return 0;
+  /* vnodes = (degree+1)^d ? */
+  if (lnodes->vnodes != pow ((lnodes->degree + 1), P4EST_DIM))
+    return 0;
+  /* global_offset matches sum of all owned_counts ? */
+  owned_count_sum = 0;
+  for (i = 0; i < mpirank; i++) {
+    owned_count_sum += lnodes->global_owned_count[i];
+  }
+  if (lnodes->global_offset != owned_count_sum)
+    return 0;
+
   if (lnodes->owned_count != lnodes->global_owned_count[mpirank])
     return 0;
+  /* element_nodes has valid values? */
+  for (i = 0; i < lnodes->vnodes * lnodes->num_local_elements; i++) {
+    if (lnodes->element_nodes[i] < 0
+        || lnodes->element_nodes[i] >= lnodes->num_local_nodes)
+      return 0;
+  }
+
+  /* nonlocal_nodes is sorted? */
   sc_array_init_data (&array, lnodes->nonlocal_nodes, sizeof (p4est_gloidx_t),
                       (size_t) lnodes->num_local_nodes - lnodes->owned_count);
   if (!sc_array_is_sorted (&array, p4est_gloidx_compare))
-    return 0;
-  if (!sc_array_is_sorted (lnodes->sharers, p4est_lnodes_rank_compare))
-    return 0;
+      return 0;
+  /* The sharers array */
+  temprank = -1;
+  for (i = 0; i < lnodes->sharers->elem_count; i++) {
+    r1 =
+      (p4est_lnodes_rank_t *) (lnodes->sharers->array +
+                               lnodes->sharers->elem_size * i);
+    /* ordered by rank? */
+    if (r1->rank <= temprank)
+      return 0;
+    temprank = r1->rank;
+    /* everything in valid ranges ? */
+    if (r1->owned_count < 0 || r1->shared_mine_count < 0)
+      return 0;
+    if (r1->owned_count) {
+      if (r1->owned_offset < 0 || r1->owned_offset >= lnodes->num_local_nodes)
+        return 0;
+    }
+    if (r1->shared_mine_count) {
+      if (r1->shared_mine_offset < 0)
+        return 0;
+    }
+    if (r1->rank == mpirank) {
+      if (r1->owned_count != lnodes->owned_count)
+        return 0;
+    }
+    /* subsection of shared_nodes is sorted ?
+     * values in valid range ? */
+    tempshared_node = -1;
+    for (j = 0; j < r1->shared_mine_count; j++) {
+      /* check the subsection in shared_nodes of nodes that are owned by process r1->rank */
+      if (r1->shared_mine_offset <= j
+          && j < r1->shared_mine_offset + r1->shared_mine_count) {
+        if (r1->shared_mine_offset == j)
+          tempshared_node = -1;
+        if (*(p4est_locidx_t *)
+            (r1->shared_nodes.array +
+             r1->shared_nodes.elem_size * (j + r1->shared_mine_offset)) <
+            tempshared_node)
+          return 0;
+      }
+      tempshared_node =
+        *(p4est_locidx_t *) (r1->shared_nodes.array +
+                             r1->shared_nodes.elem_size * (j +
+                                                           r1->
+                                                           shared_mine_offset));
+      if (tempshared_node < 0 || tempshared_node >= lnodes->num_local_nodes)
+        return 0;
+    }
+  }
   return 1;
 }
