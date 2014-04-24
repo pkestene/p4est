@@ -2776,13 +2776,13 @@ int
 p4est_lnodes_is_valid (p4est_lnodes_t * lnodes)
 {
   sc_array_t          array;
-  int                 mpirank,mpiret, i, j, temprank;
+  int                 mpirank, mpiret, i, j, temprank;
   p4est_lnodes_rank_t *r1;
   p4est_gloidx_t      owned_count_sum;
   p4est_locidx_t      tempshared_node;
 
-  mpiret=MPI_Comm_rank (lnodes->mpicomm, &mpirank);
-  SC_CHECK_MPI(mpiret);
+  mpiret = MPI_Comm_rank (lnodes->mpicomm, &mpirank);
+  SC_CHECK_MPI (mpiret);
 
   if (lnodes->degree < 1 || lnodes->owned_count < 0
       || lnodes->num_local_nodes < lnodes->owned_count
@@ -2813,14 +2813,12 @@ p4est_lnodes_is_valid (p4est_lnodes_t * lnodes)
   sc_array_init_data (&array, lnodes->nonlocal_nodes, sizeof (p4est_gloidx_t),
                       (size_t) lnodes->num_local_nodes - lnodes->owned_count);
   if (!sc_array_is_sorted (&array, p4est_gloidx_compare))
-      return 0;
+    return 0;
   /* The sharers array */
   temprank = -1;
   for (i = 0; i < lnodes->sharers->elem_count; i++) {
-    /* TODO: use one of the sc_array_index functions instead */
-    r1 =
-      (p4est_lnodes_rank_t *) (lnodes->sharers->array +
-                               lnodes->sharers->elem_size * i);
+    r1 = (p4est_lnodes_rank_t *) sc_array_index_int (lnodes->sharers, i);
+
     /* ordered by rank? */
     if (r1->rank <= temprank)
       return 0;
@@ -2850,17 +2848,16 @@ p4est_lnodes_is_valid (p4est_lnodes_t * lnodes)
         if (r1->shared_mine_offset == j)
           tempshared_node = -1;
         if (*(p4est_locidx_t *)
-            (r1->shared_nodes.array +
-             r1->shared_nodes.elem_size * (j + r1->shared_mine_offset)) <
-            tempshared_node)
+            (sc_array_index_int
+             (&r1->shared_nodes,
+              j + r1->shared_mine_offset)) < tempshared_node)
           return 0;
       }
-      /* TODO: see above */
       tempshared_node =
-        *(p4est_locidx_t *) (r1->shared_nodes.array +
-                             r1->shared_nodes.elem_size * (j +
-                                                           r1->
-                                                           shared_mine_offset));
+        *(p4est_locidx_t
+          *) (sc_array_index_int (&r1->shared_nodes,
+                                  j + r1->shared_mine_offset));
+
       if (tempshared_node < 0 || tempshared_node >= lnodes->num_local_nodes)
         return 0;
     }
