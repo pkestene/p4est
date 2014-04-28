@@ -2776,7 +2776,7 @@ int
 p4est_lnodes_is_valid (p4est_lnodes_t * lnodes)
 {
   sc_array_t          array;
-  int                 mpirank, mpiret, i, j, temprank;
+  int                 mpirank, mpiret, i, j, temprank, degree_power;
   p4est_lnodes_rank_t *r1;
   p4est_gloidx_t      owned_count_sum;
   p4est_locidx_t      tempshared_node;
@@ -2793,9 +2793,12 @@ p4est_lnodes_is_valid (p4est_lnodes_t * lnodes)
       || lnodes->num_local_nodes < lnodes->owned_count
       || lnodes->global_offset < 0 || lnodes->num_local_elements < 0)
     return 0;
-  /* TODO: don't use pow for integers */
   /* vnodes = (degree+1)^d ? */
-  if (lnodes->vnodes != pow ((lnodes->degree + 1), P4EST_DIM))
+  degree_power = 1;
+  for (i = 0; i < P4EST_DIM; i++) {
+    degree_power *= (lnodes->degree + 1);
+  }
+  if (lnodes->vnodes != degree_power)
     return 0;
   /* global_offset matches sum of all owned_counts ? */
   owned_count_sum = 0;
