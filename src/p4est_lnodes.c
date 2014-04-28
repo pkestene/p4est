@@ -2780,6 +2780,11 @@ p4est_lnodes_is_valid (p4est_lnodes_t * lnodes)
   p4est_lnodes_rank_t *r1;
   p4est_gloidx_t      owned_count_sum;
   p4est_locidx_t      tempshared_node;
+#ifndef P4_TO_P8
+  int                 temp_hanging_face[4];
+#else
+  int                 temp_hanging_face[6], temp_hanging_edge[12];
+#endif
 
   mpiret = MPI_Comm_rank (lnodes->mpicomm, &mpirank);
   SC_CHECK_MPI (mpiret);
@@ -2861,6 +2866,19 @@ p4est_lnodes_is_valid (p4est_lnodes_t * lnodes)
       if (tempshared_node < 0 || tempshared_node >= lnodes->num_local_nodes)
         return 0;
     }
+  }
+
+  for (i = 0; i < lnodes->num_local_elements; i++) {
+#ifndef P4_TO_P8
+    if ((lnodes->face_code[i] & 0xF0) != 0)
+      return 0;
+    p4est_lnodes_decode (lnodes->face_code[i], temp_hanging_face);
+#else
+    if ((lnodes->face_code[i] & 0xFE00) != 0)
+      return 0;
+    p8est_lnodes_decode (lnodes->face_code[i], temp_hanging_face,
+                         temp_hanging_edge);
+#endif
   }
   return 1;
 }
