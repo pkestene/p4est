@@ -118,6 +118,16 @@ typedef struct p4est_lnodes_rank
 }
 p4est_lnodes_rank_t;
 
+/** Examine if a lnodes structure is valid.
+ * Test if all values are in the valid ranges.
+ * Test if nonlocal_nodes and sharers arrays are sorted
+ * and if the shared nodes array inside the sharers array
+ * is sorted within each rank.
+ * Test if for each face_code the non-used bits are set to zero.
+ * \param[in] lnodes    p4est_lnodes structure to be tested.
+ * \return true if \a lnodes is valid, false if not.
+ */
+
 int                 p4est_lnodes_is_valid (p4est_lnodes_t * lnodes);
 
 /** Decode the face_code into hanging face information.
