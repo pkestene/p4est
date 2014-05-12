@@ -127,7 +127,6 @@ p4est_lnodes_rank_t;
  * \param[in] lnodes    p4est_lnodes structure to be tested.
  * \return true if \a lnodes is valid, false if not.
  */
-
 int                 p4est_lnodes_is_valid (p4est_lnodes_t * lnodes);
 
 /** Decode the face_code into hanging face information.
