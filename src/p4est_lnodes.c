@@ -2863,6 +2863,7 @@ p4est_lnodes_is_valid (p4est_lnodes_t * lnodes)
     for (j = 0; j < r1->shared_mine_count; j++) {
       /* check the subsection in shared_nodes of nodes
        * that are owned by process r1->rank */
+      /* TODO the following comparison does not make sense */
       if (r1->shared_mine_offset <= j
           && j < r1->shared_mine_offset + r1->shared_mine_count) {
         if (r1->shared_mine_offset == j)
