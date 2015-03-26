@@ -35,6 +35,7 @@
  *        o disk      Refinement on a 5-tree spherical disk.
  *        o periodic  Refinement on the unit square with all-periodic b.c.
  *        o rotwrap   Refinement on the unit square with weird periodic b.c.
+ *        o ring      Refinement on a ring
  */
 
 #include <p4est_bits.h>
@@ -42,6 +43,7 @@
 #include <p4est_vtk.h>
 #include <p4est_iterate.h>
 
+#include "ring_connectivity.h"
 
 typedef enum
 {
@@ -56,7 +58,8 @@ typedef enum
   P4EST_CONFIG_CUBED,
   P4EST_CONFIG_DISK,
   P4EST_CONFIG_PERIODIC,
-  P4EST_CONFIG_ROTWRAP
+  P4EST_CONFIG_ROTWRAP,
+  P4EST_CONFIG_RING
 }
 simple_config_t;
 
@@ -336,11 +339,11 @@ main (int argc, char **argv)
     "Arguments: <configuration> <level>\n"
     "   Configuration can be any of\n"
     "      unit|three|evil|evil3|pillow|moebius|\n"
-    "         star|cubed|disk|periodic|rotwrap\n"
+    "         star|cubed|disk|periodic|rotwrap|ring\n"
     "   Level controls the maximum depth of refinement\n";
   wrongusage = 0;
   config = P4EST_CONFIG_NULL;
-  if (!wrongusage && argc != 3) {
+  if (!wrongusage && argc < 3) {
     wrongusage = 1;
   }
   if (!wrongusage) {
@@ -376,6 +379,9 @@ main (int argc, char **argv)
     }
     else if (!strcmp (argv[1], "rotwrap")) {
       config = P4EST_CONFIG_ROTWRAP;
+    }
+    else if (!strcmp (argv[1], "ring")) {
+      config = P4EST_CONFIG_RING;
     }
     else {
       wrongusage = 1;
@@ -425,6 +431,27 @@ main (int argc, char **argv)
   }
   else if (config == P4EST_CONFIG_ROTWRAP) {
     connectivity = p4est_connectivity_new_rotwrap ();
+  }
+  else if (config == P4EST_CONFIG_RING) {
+
+    int num_trees_radial = 3;
+    int num_trees_orthoradial = 16;
+    double rMin = 1.0;
+    double rMax = 2.0;
+
+    if (argc >= 4)
+      num_trees_radial = atoi (argv[3]);
+    if (argc >= 5)
+      num_trees_orthoradial = atoi (argv[4]);
+    if (argc >= 6)
+      rMin = atof (argv[5]);
+    if (argc >= 7)
+      rMax = atof (argv[6]);
+
+    connectivity = p4est_connectivity_new_ring (num_trees_radial, 
+						num_trees_orthoradial,
+						rMin,
+						rMax);
   }
   else {
     connectivity = p4est_connectivity_new_unitsquare ();

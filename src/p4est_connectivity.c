@@ -541,8 +541,8 @@ p4est_connectivity_is_valid (p4est_connectivity_t * conn)
       if (ntree != tree || nface != face) {
         /* check reciprocity */
         if (ttt[ntree * P4EST_FACES + nface] != tree) {
-          P4EST_NOTICEF ("Tree to tree reciprocity in %lld %d\n",
-                         (long long) tree, face);
+          P4EST_NOTICEF ("Tree to tree reciprocity in %lld %lld %d %d\n",
+                         (long long) tree, (long long) ntree, face, nface);
           goto failure;
         }
         if ((int) ttf[ntree * P4EST_FACES + nface] !=
