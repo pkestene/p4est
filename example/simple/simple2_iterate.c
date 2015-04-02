@@ -36,6 +36,7 @@
  *        o periodic  Refinement on the unit square with all-periodic b.c.
  *        o rotwrap   Refinement on the unit square with weird periodic b.c.
  *        o ring      Refinement on a ring
+ *        o shell2d   Refinement on a 2d shell
  */
 
 #include <p4est_bits.h>
@@ -44,6 +45,7 @@
 #include <p4est_iterate.h>
 
 #include "ring_connectivity.h"
+#include "shell2d_connectivity.h"
 
 typedef enum
 {
@@ -59,7 +61,8 @@ typedef enum
   P4EST_CONFIG_DISK,
   P4EST_CONFIG_PERIODIC,
   P4EST_CONFIG_ROTWRAP,
-  P4EST_CONFIG_RING
+  P4EST_CONFIG_RING,
+  P4EST_CONFIG_SHELL2D
 }
 simple_config_t;
 
@@ -275,7 +278,7 @@ is_outside_boundary_compute(p4est_t *p4est) {
 } /* is_outside_boudary_compute */
 
 void
-write_user_data(p4est_t *p4est, const char *filename)
+write_user_data(p4est_t *p4est, p4est_geometry_t * geom, const char *filename)
 {
 
   double *is_outside_data;    /* array of cell data to write */
@@ -297,8 +300,8 @@ write_user_data(p4est_t *p4est, const char *filename)
 #endif
                  NULL);
 
-  p4est_vtk_write_header (p4est, NULL, 0.95, filename);  
-  p4est_vtk_write_cell_data (p4est, NULL, 1, 1,
+  p4est_vtk_write_header (p4est, geom, 0.95, filename);  
+  p4est_vtk_write_cell_data (p4est, geom, 1, 1,
 			     1, 0, 1, 0, filename, "is_outside", is_outside_data);
   p4est_vtk_write_footer (p4est, filename);
 
@@ -317,6 +320,7 @@ main (int argc, char **argv)
   mpi_context_t       mpi_context, *mpi = &mpi_context;
   p4est_t            *p4est;
   p4est_connectivity_t *connectivity;
+  p4est_geometry_t   *geom;
   p4est_refine_t      refine_fn;
   p4est_coarsen_t     coarsen_fn;
   simple_config_t     config;
@@ -339,7 +343,7 @@ main (int argc, char **argv)
     "Arguments: <configuration> <level>\n"
     "   Configuration can be any of\n"
     "      unit|three|evil|evil3|pillow|moebius|\n"
-    "         star|cubed|disk|periodic|rotwrap|ring\n"
+    "         star|cubed|disk|periodic|rotwrap|ring|shell2d\n"
     "   Level controls the maximum depth of refinement\n";
   wrongusage = 0;
   config = P4EST_CONFIG_NULL;
@@ -383,6 +387,9 @@ main (int argc, char **argv)
     else if (!strcmp (argv[1], "ring")) {
       config = P4EST_CONFIG_RING;
     }
+    else if (!strcmp (argv[1], "shell2d")) {
+      config = P4EST_CONFIG_SHELL2D;
+    }
     else {
       wrongusage = 1;
     }
@@ -408,6 +415,7 @@ main (int argc, char **argv)
   }
 
   /* create connectivity and forest structures */
+  geom = NULL;
   if (config == P4EST_CONFIG_THREE || config == P4EST_CONFIG_EVIL3) {
     connectivity = p4est_connectivity_new_corner ();
   }
@@ -453,28 +461,40 @@ main (int argc, char **argv)
 						rMin,
 						rMax);
   }
+  else if (config == P4EST_CONFIG_SHELL2D) {
+    double rMin = 0.55;
+    double rMax = 1.0;
+
+    if (argc >= 4)
+      rMin = atof (argv[3]);
+    if (argc >= 5)
+      rMax = atof (argv[4]);
+
+    connectivity = p4est_connectivity_new_shell2d ();
+    geom = p4est_geometry_new_shell2d (connectivity, rMax, rMin);
+  }
   else {
     connectivity = p4est_connectivity_new_unitsquare ();
   }
   p4est = p4est_new_ext (mpi->mpicomm, connectivity, 15, 0, 0,
                          sizeof (user_data_t), init_fn, NULL);
-  p4est_vtk_write_file (p4est, NULL, "simple2_new");
+  p4est_vtk_write_file (p4est, geom, "simple2_new");
 
   /* refinement and coarsening */
   p4est_refine (p4est, 1, refine_fn, init_fn);
   if (coarsen_fn != NULL) {
     p4est_coarsen (p4est, 1, coarsen_fn, init_fn);
   }
-  p4est_vtk_write_file (p4est, NULL, "simple2_refined");
+  p4est_vtk_write_file (p4est, geom, "simple2_refined");
 
   /* balance */
   p4est_balance (p4est, P4EST_CONNECT_FULL, init_fn);
-  p4est_vtk_write_file (p4est, NULL, "simple2_balanced");
+  p4est_vtk_write_file (p4est, geom, "simple2_balanced");
   crc = p4est_checksum (p4est);
 
   /* partition */
   p4est_partition (p4est, 0, NULL);
-  p4est_vtk_write_file (p4est, NULL, "simple2_partition");
+  p4est_vtk_write_file (p4est, geom, "simple2_partition");
 
 #ifdef P4EST_ENABLE_DEBUG
   /* rebalance should not change checksum */
@@ -486,7 +506,7 @@ main (int argc, char **argv)
   is_outside_boundary_compute(p4est);
 
   /* save outside boundary data */
-  write_user_data(p4est, "simple2_outside");
+  write_user_data(p4est, geom, "simple2_outside");
   
   /* print and verify forest checksum */
   P4EST_GLOBAL_STATISTICSF ("Tree checksum 0x%08x\n", crc);
@@ -503,6 +523,9 @@ main (int argc, char **argv)
 
   /* destroy the p4est and its connectivity structure */
   p4est_destroy (p4est);
+  if (geom != NULL) {
+    p4est_geometry_destroy (geom);
+  }
   p4est_connectivity_destroy (connectivity);
 
   /* clean up and exit */

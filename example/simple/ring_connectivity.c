@@ -4,6 +4,8 @@
 #include <p4est_connectivity.h>
 #endif
 
+#include "ring_connectivity.h"
+
 p4est_connectivity_t *
 p4est_connectivity_new_ring (int num_trees_radial,
 			     int num_trees_orthoradial,
