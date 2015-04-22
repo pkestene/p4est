@@ -16,12 +16,12 @@ p4est_connectivity_new_shell2d (void)
   const p4est_topidx_t num_trees    = 8;
   const p4est_topidx_t num_ctt      = 0;
   const double         vertices[6 * 3] = {
-    -1,  0,  1,
-     0,  0,  1,
-     1,  0,  1,
-    -1,  0,  2,
-     0,  0,  2,
-     1,  0,  2,
+    -1,  1,  0,
+     0,  1,  0,
+     1,  1,  0,
+    -1,  2,  0,
+     0,  2,  0,
+     1,  2,  0,
   };
   const p4est_topidx_t tree_to_vertex[8 * 4] = {
     0, 1, 3, 4,
@@ -34,14 +34,14 @@ p4est_connectivity_new_shell2d (void)
     1, 2, 4, 5,
   };
   const p4est_topidx_t tree_to_tree[8 * 4] = {
-    1, 7, 0, 0,
-    2, 0, 1, 1,
-    3, 1, 2, 2,
-    4, 2, 3, 3,
-    5, 3, 4, 4,
-    6, 4, 5, 5,
-    7, 5, 6, 6,
-    0, 6, 7, 7,
+    7, 1, 0, 0,
+    0, 2, 1, 1,
+    1, 3, 2, 2,
+    2, 4, 3, 3,
+    3, 5, 4, 4,
+    4, 6, 5, 5,
+    5, 7, 6, 6,
+    6, 0, 7, 7,
   };
   const int8_t        tree_to_face[8 * 4] = {
     1, 0, 2, 3,
@@ -164,34 +164,34 @@ p4est_geometry_shell2d_X (p4est_geometry_t * geom,
   P4EST_ASSERT (shell2d->type == P4EST_GEOMETRY_BUILTIN_SHELL2D);
   P4EST_ASSERT (0 <= which_tree && which_tree < 8);
   P4EST_ASSERT (abc[0] < 1.0 + SC_1000_EPS && abc[0] > -1.0 - SC_1000_EPS);
-  P4EST_ASSERT (abc[2] < 2.0 + SC_1000_EPS && abc[2] >  1.0 - SC_1000_EPS);
+  P4EST_ASSERT (abc[1] < 2.0 + SC_1000_EPS && abc[1] >  1.0 - SC_1000_EPS);
 
-  /* abc[1] is always 0 here ... */
+  /* abc[2] is always 0 here ... */
 
   /* transform abc[0] in-place for nicer grading */
   x = tan (abc[0] * M_PI_4);
 
   /* compute transformation ingredients */
-  R = shell2d->R1sqrbyR2 * pow (shell2d->R2byR1, abc[2]);
+  R = shell2d->R1sqrbyR2 * pow (shell2d->R2byR1, abc[1]);
   q = R / sqrt (x * x + 1.);
 
   /* assign correct coordinates based on patch id */
   switch (which_tree / 2) {
-  case 3:                      /* top */
-    xyz[0] = +q;
-    xyz[1] = +q * x;
+  case 0:                      /* bottom */
+    xyz[0] = +q;               /*  R*cos(theta) */
+    xyz[1] = +q * x;           /*  R*sin(theta) */
     break;
-  case 2:                      /* left */
-    xyz[0] = -q;
-    xyz[1] = -q * x;
+  case 1:                      /* right */
+    xyz[0] = -q * x;           /* -R*sin(theta) = R*cos(theta+PI/2) */
+    xyz[1] = +q;               /*  R*cos(theta) = R*sin(theta+PI/2) */
     break;
-  case 1:                      /* bottom */
-    xyz[0] = -q * x;
-    xyz[1] =  q;
+  case 2:                      /* top */
+    xyz[0] = -q;               /* - R*cos(theta) = R*cos(theta+PI) */
+    xyz[1] = -q * x;           /* - R*sin(theta) = R*sin(theta+PI) */
     break;
-  case 0:                      /* right */
-    xyz[0] = +q * x;
-    xyz[1] = -q;
+  case 3:                      /* left */
+    xyz[0] = +q * x;           /*  R*sin(theta) = R*cos(theta+3*PI/2) */
+    xyz[1] = -q;               /* -R*cos(theta) = R*sin(theta+3*PI/2) */
     break;
   default:
     SC_ABORT_NOT_REACHED ();
