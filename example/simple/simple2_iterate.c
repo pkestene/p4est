@@ -35,6 +35,7 @@
  *        o disk      Refinement on a 5-tree spherical disk.
  *        o periodic  Refinement on the unit square with all-periodic b.c.
  *        o rotwrap   Refinement on the unit square with weird periodic b.c.
+ *        o brick     Refinement on a brick
  *        o ring      Refinement on a ring
  *        o shell2d   Refinement on a 2d shell
  */
@@ -61,6 +62,7 @@ typedef enum
   P4EST_CONFIG_DISK,
   P4EST_CONFIG_PERIODIC,
   P4EST_CONFIG_ROTWRAP,
+  P4EST_CONFIG_BRICK,
   P4EST_CONFIG_RING,
   P4EST_CONFIG_SHELL2D
 }
@@ -343,7 +345,7 @@ main (int argc, char **argv)
     "Arguments: <configuration> <level>\n"
     "   Configuration can be any of\n"
     "      unit|three|evil|evil3|pillow|moebius|\n"
-    "         star|cubed|disk|periodic|rotwrap|ring|shell2d\n"
+    "         star|cubed|disk|periodic|rotwrap|brick|ring|shell2d\n"
     "   Level controls the maximum depth of refinement\n";
   wrongusage = 0;
   config = P4EST_CONFIG_NULL;
@@ -383,6 +385,9 @@ main (int argc, char **argv)
     }
     else if (!strcmp (argv[1], "rotwrap")) {
       config = P4EST_CONFIG_ROTWRAP;
+    }
+    else if (!strcmp (argv[1], "brick")) {
+      config = P4EST_CONFIG_BRICK;
     }
     else if (!strcmp (argv[1], "ring")) {
       config = P4EST_CONFIG_RING;
@@ -439,6 +444,25 @@ main (int argc, char **argv)
   }
   else if (config == P4EST_CONFIG_ROTWRAP) {
     connectivity = p4est_connectivity_new_rotwrap ();
+  }
+  else if (config == P4EST_CONFIG_BRICK) {
+    int numtrees_x = 1;
+    int numtrees_y = 1;
+
+    int periodic_x = 0;
+    int periodic_y = 0;
+
+    if (argc >= 4)
+      numtrees_x = atoi (argv[3]);
+    if (argc >= 5)
+      numtrees_y = atoi (argv[4]);
+    if (argc >= 6)
+      periodic_x = atoi (argv[5]);
+    if (argc >= 7)
+      periodic_y = atoi (argv[6]);
+
+    connectivity = p4est_connectivity_new_brick (numtrees_x, numtrees_y,
+						 periodic_x, periodic_y);
   }
   else if (config == P4EST_CONFIG_RING) {
 
