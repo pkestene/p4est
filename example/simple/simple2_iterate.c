@@ -238,7 +238,8 @@ is_outside_boundary_getdata_callback(p4est_iter_volume_info_t * info, void *user
 {
   /* we passed the array of values to fill as the user_data in the call
      to p4est_iterate */
-  double             *is_outside_data = (double *) user_data;
+  sc_array_t         *is_outside_data = (sc_array_t *) user_data;
+  double             *this_data;
   p4est_t            *p4est = info->p4est;
   p4est_quadrant_t   *q = info->quad;
   p4est_topidx_t      which_tree = info->treeid;
@@ -251,7 +252,8 @@ is_outside_boundary_getdata_callback(p4est_iter_volume_info_t * info, void *user
   local_id += tree->quadrants_offset;   /* now the id is relative to the MPI process */
   arrayoffset = local_id;
 
-  is_outside_data[arrayoffset] = data->is_outside;
+  this_data = (double*) sc_array_index (is_outside_data, arrayoffset);
+  this_data[0] = data->is_outside;
 
 } /* is_outside_boundary_getdata_callback */
 
@@ -283,13 +285,13 @@ void
 write_user_data(p4est_t *p4est, p4est_geometry_t * geom, const char *filename)
 {
 
-  double *is_outside_data;    /* array of cell data to write */
+  sc_array_t         *is_outside_data;    /* array of cell data to write */
   p4est_locidx_t      numquads;
 
   numquads = p4est->local_num_quadrants;
 
   /* create a vector with one value per local quadrant */
-  is_outside_data = P4EST_ALLOC (double, numquads);
+  is_outside_data = sc_array_new_size (sizeof(double), numquads);
 
   /* Use the iterator to visit every cell and fill in the data array */
   p4est_iterate (p4est, 
@@ -302,13 +304,26 @@ write_user_data(p4est_t *p4est, p4est_geometry_t * geom, const char *filename)
 #endif
                  NULL);
 
-  p4est_vtk_write_header (p4est, geom, 0.95, filename);  
-  p4est_vtk_write_cell_data (p4est, geom, 1, 1,
-			     1, 0, 1, 0, filename, "is_outside", is_outside_data);
-  p4est_vtk_write_footer (p4est, filename);
+  /* create VTK output context and set its parameters */
+  p4est_vtk_context_t *context = p4est_vtk_context_new (p4est, filename);
+  p4est_vtk_context_set_scale (context, 0.95);
+  p4est_vtk_context_set_geom  (context, geom);
 
+  p4est_vtk_write_header (context);
+  context = p4est_vtk_write_cell_dataf (context, 1, 1,
+					1, 
+					0, 
+					1,  /* 1 scalar */
+					0,  /* 0 vector */
+					"is_outside", is_outside_data, 
+					context);
+  SC_CHECK_ABORT (context != NULL,
+                  P4EST_STRING "_vtk: Error writing cell data");
 
-  P4EST_FREE(is_outside_data);
+  const int retval = p4est_vtk_write_footer (context);
+  SC_CHECK_ABORT (!retval, P4EST_STRING "_vtk: Error writing footer");
+
+  sc_array_destroy (is_outside_data);
 
 } /* write_user_data */
 
