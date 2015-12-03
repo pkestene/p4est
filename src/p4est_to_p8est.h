@@ -21,7 +21,7 @@
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-/** \file p4est_to_p8est.h
+/** We do not process this file in Doxygen since it overwrites types.
  *
  * Transform 2D \ref p4est routines into 3D \ref p8est routines.  This file can
  * be included from a .c file that has been written for 2D to turn it into a 3D
@@ -58,6 +58,7 @@
 #define P4EST_LEAF_IS_FIRST_IN_TREE     P8EST_LEAF_IS_FIRST_IN_TREE
 
 /* redefine enums */
+#define P4EST_COMM_TAG_FIRST            P8EST_COMM_TAG_FIRST
 #define P4EST_COMM_COUNT_PERTREE        P8EST_COMM_COUNT_PERTREE
 #define P4EST_COMM_BALANCE_FIRST_COUNT  P8EST_COMM_BALANCE_FIRST_COUNT
 #define P4EST_COMM_BALANCE_FIRST_LOAD   P8EST_COMM_BALANCE_FIRST_LOAD
@@ -82,6 +83,7 @@
 #define P4EST_COMM_LNODES_PASS          P8EST_COMM_LNODES_PASS
 #define P4EST_COMM_LNODES_OWNED         P8EST_COMM_LNODES_OWNED
 #define P4EST_COMM_LNODES_ALL           P8EST_COMM_LNODES_ALL
+#define P4EST_COMM_TAG_LAST             P8EST_COMM_TAG_LAST
 #define P4EST_CONNECT_FACE              P8EST_CONNECT_FACE
 #define P4EST_CONNECT_CORNER            P8EST_CONNECT_CORNER
 #define P4EST_CONNECT_FULL              P8EST_CONNECT_FULL
@@ -110,6 +112,7 @@
 #define p4est_coarsen_t                 p8est_coarsen_t
 #define p4est_weight_t                  p8est_weight_t
 #define p4est_ghost_t                   p8est_ghost_t
+#define p4est_ghost_exchange_t          p8est_ghost_exchange_t
 #define p4est_indep_t                   p8est_indep_t
 #define p4est_nodes_t                   p8est_nodes_t
 #define p4est_lnodes_t                  p8est_lnodes_t
@@ -130,6 +133,7 @@
 #define p4est_wrap_t                    p8est_wrap_t
 #define p4est_wrap_leaf_t               p8est_wrap_leaf_t
 #define p4est_wrap_flags_t              p8est_wrap_flags_t
+#define p4est_vtk_context_t             p8est_vtk_context_t
 
 /* redefine external variables */
 #define p4est_face_corners              p8est_face_corners
@@ -335,16 +339,17 @@
 #define p4est_geometry_new_connectivity p8est_geometry_new_connectivity
 
 /* functions in p4est_vtk */
+#define p4est_vtk_context_new           p8est_vtk_context_new
+#define p4est_vtk_context_destroy       p8est_vtk_context_destroy
+#define p4est_vtk_context_set_geom      p8est_vtk_context_set_geom
+#define p4est_vtk_context_set_scale     p8est_vtk_context_set_scale
+#define p4est_vtk_context_set_continuous p8est_vtk_context_set_continuous
 #define p4est_vtk_write_file            p8est_vtk_write_file
-#define p4est_vtk_write_all             p8est_vtk_write_all
 #define p4est_vtk_write_header          p8est_vtk_write_header
+#define p4est_vtk_write_cell_dataf      p8est_vtk_write_cell_dataf
 #define p4est_vtk_write_cell_data       p8est_vtk_write_cell_data
+#define p4est_vtk_write_point_dataf     p8est_vtk_write_point_dataf
 #define p4est_vtk_write_point_data      p8est_vtk_write_point_data
-#define p4est_vtk_write_point_datav     p8est_vtk_write_point_datav
-#define p4est_vtk_write_point_scalar    p8est_vtk_write_point_scalar
-#define p4est_vtk_write_point_vector    p8est_vtk_write_point_vector
-#define p4est_vtk_write_cell_scalar     p8est_vtk_write_cell_scalar
-#define p4est_vtk_write_cell_vector     p8est_vtk_write_cell_vector
 #define p4est_vtk_write_footer          p8est_vtk_write_footer
 
 /* functions in p4est_ghost */
@@ -353,8 +358,16 @@
 #define p4est_ghost_new                 p8est_ghost_new
 #define p4est_ghost_destroy             p8est_ghost_destroy
 #define p4est_ghost_exchange_data       p8est_ghost_exchange_data
+#define p4est_ghost_exchange_data_begin p8est_ghost_exchange_data_begin
+#define p4est_ghost_exchange_data_end   p8est_ghost_exchange_data_end
 #define p4est_ghost_exchange_custom     p8est_ghost_exchange_custom
+#define p4est_ghost_exchange_custom_begin p8est_ghost_exchange_custom_begin
+#define p4est_ghost_exchange_custom_end p8est_ghost_exchange_custom_end
 #define p4est_ghost_exchange_custom_levels p8est_ghost_exchange_custom_levels
+#define p4est_ghost_exchange_custom_levels_begin \
+                                        p8est_ghost_exchange_custom_levels_begin
+#define p4est_ghost_exchange_custom_levels_end \
+                                        p8est_ghost_exchange_custom_levels_end
 #define p4est_ghost_bsearch             p8est_ghost_bsearch
 #define p4est_ghost_contains            p8est_ghost_contains
 #define p4est_ghost_is_valid            p8est_ghost_is_valid
@@ -420,5 +433,8 @@
 
 /* functions in p4est_plex */
 #define p4est_get_plex_data             p8est_get_plex_data
+
+/* functions in p4est_connrefine */
+#define p4est_connectivity_refine       p8est_connectivity_refine
 
 #endif /* !P4EST_TO_P8EST_H */
