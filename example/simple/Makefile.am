@@ -8,7 +8,7 @@ bin_PROGRAMS += example/simple/p4est_simple
 example_simple_p4est_simple_SOURCES = example/simple/simple2.c
 
 bin_PROGRAMS += example/simple/p4est_simple_iterate
-example_simple_p4est_simple_iterate_SOURCES = example/simple/simple2_iterate.c example/simple/ring_connectivity.c example/simple/shell2d_connectivity.c
+example_simple_p4est_simple_iterate_SOURCES = example/simple/simple2_iterate.c example/simple/ring_connectivity.c example/simple/shell2d_connectivity.c example/simple/icosahedron_connectivity.c
 
 LINT_CSOURCES += \
 	$(example_simple_p4est_simple_SOURCES) \

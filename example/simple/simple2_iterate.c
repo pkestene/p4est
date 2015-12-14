@@ -24,20 +24,21 @@
 /*
  * Usage: p4est_simple <configuration> <level>
  *        possible configurations:
- *        o unit      Refinement on the unit square.
- *        o three     Refinement on a forest with three trees.
- *        o evil      Check second round of refinement with np=5 level=7
- *        o evil3     Check second round of refinement on three trees
- *        o pillow    Refinement on a 2-tree pillow-shaped domain.
- *        o moebius   Refinement on a 5-tree Moebius band.
- *        o star      Refinement on a 6-tree star shaped domain.
- *        o cubed     Refinement on a 6-tree cubed sphere surface.
- *        o disk      Refinement on a 5-tree spherical disk.
- *        o periodic  Refinement on the unit square with all-periodic b.c.
- *        o rotwrap   Refinement on the unit square with weird periodic b.c.
- *        o brick     Refinement on a brick
- *        o ring      Refinement on a ring
- *        o shell2d   Refinement on a 2d shell
+ *        o unit          Refinement on the unit square.
+ *        o three         Refinement on a forest with three trees.
+ *        o evil          Check second round of refinement with np=5 level=7
+ *        o evil3         Check second round of refinement on three trees
+ *        o pillow        Refinement on a 2-tree pillow-shaped domain.
+ *        o moebius       Refinement on a 5-tree Moebius band.
+ *        o star          Refinement on a 6-tree star shaped domain.
+ *        o cubed         Refinement on a 6-tree cubed sphere surface.
+ *        o disk          Refinement on a 5-tree spherical disk.
+ *        o periodic      Refinement on the unit square with all-periodic b.c.
+ *        o rotwrap       Refinement on the unit square with weird periodic b.c.
+ *        o brick         Refinement on a brick
+ *        o ring          Refinement on a ring
+ *        o shell2d       Refinement on a 2d shell
+ *        o icosahedron   Refinement on a 2d shell
  */
 
 #include <p4est_bits.h>
@@ -47,6 +48,7 @@
 
 #include "ring_connectivity.h"
 #include "shell2d_connectivity.h"
+#include "icosahedron_connectivity.h"
 
 typedef enum
 {
@@ -64,7 +66,8 @@ typedef enum
   P4EST_CONFIG_ROTWRAP,
   P4EST_CONFIG_BRICK,
   P4EST_CONFIG_RING,
-  P4EST_CONFIG_SHELL2D
+  P4EST_CONFIG_SHELL2D,
+  P4EST_CONFIG_ICOSAHEDRON,
 }
 simple_config_t;
 
@@ -360,7 +363,7 @@ main (int argc, char **argv)
     "Arguments: <configuration> <level>\n"
     "   Configuration can be any of\n"
     "      unit|three|evil|evil3|pillow|moebius|\n"
-    "         star|cubed|disk|periodic|rotwrap|brick|ring|shell2d\n"
+    "         star|cubed|disk|periodic|rotwrap|brick|ring|shell2d|icosahedron\n"
     "   Level controls the maximum depth of refinement\n";
   wrongusage = 0;
   config = P4EST_CONFIG_NULL;
@@ -409,6 +412,9 @@ main (int argc, char **argv)
     }
     else if (!strcmp (argv[1], "shell2d")) {
       config = P4EST_CONFIG_SHELL2D;
+    }
+    else if (!strcmp (argv[1], "icosahedron")) {
+      config = P4EST_CONFIG_ICOSAHEDRON;
     }
     else {
       wrongusage = 1;
@@ -500,17 +506,14 @@ main (int argc, char **argv)
 						rMin,
 						rMax);
   }
-  else if (config == P4EST_CONFIG_SHELL2D) {
-    double rMin = 0.55;
-    double rMax = 1.0;
+  else if (config == P4EST_CONFIG_ICOSAHEDRON) {
+    double a = 1.0;
 
     if (argc >= 4)
-      rMin = atof (argv[3]);
-    if (argc >= 5)
-      rMax = atof (argv[4]);
+      a = atof (argv[3]);
 
-    connectivity = p4est_connectivity_new_shell2d ();
-    geom = p4est_geometry_new_shell2d (connectivity, rMax, rMin);
+    connectivity = p4est_connectivity_new_icosahedron ();
+    geom = p4est_geometry_new_icosahedron (connectivity, a);
   }
   else {
     connectivity = p4est_connectivity_new_unitsquare ();
