@@ -334,12 +334,11 @@ p4est_geometry_icosahedron_X (p4est_geometry_t * geom,
 	     );
     }
 
-    printf("DEBUG : %g | %g %g %g | %g %g | %g %g | %g %g\n",norme2, 
-	   xyz[0],xyz[1],xyz[2], 
-	   theta1, theta2,
-	   dot1, norme2,
-	   eta_x, eta_y);
-    //printf("rst %f %f %f\n",rst[0],rst[1],rst[2]);
+    /* printf("DEBUG : %g | %g %g %g | %g %g | %g %g | %g %g\n",norme2,  */
+    /* 	   xyz[0],xyz[1],xyz[2],  */
+    /* 	   theta1, theta2, */
+    /* 	   dot1, norme2, */
+    /* 	   eta_x, eta_y); */
 
   } /* end of bilinear slerp */
 
