@@ -82,16 +82,16 @@ p4est_connectivity_new_icosahedron (void)
     8,1,7,0, /* tree 9 */
   };
   const int8_t        tree_to_face[10 * 4] = {
-    3,0,3,0, /* tree 0 */
-    1,2,1,2, /* tree 1 */
-    3,0,3,0, /* tree 2 */
-    1,2,1,2, /* tree 3 */
-    3,0,3,0, /* tree 4 */
-    1,2,1,2, /* tree 5 */
-    3,0,3,0, /* tree 6 */
-    1,2,1,2, /* tree 7 */
-    3,0,3,0, /* tree 8 */
-    1,2,1,2, /* tree 9 */
+    7,0,3,4, /* tree 0 */
+    1,6,5,2, /* tree 1 */
+    7,0,3,4, /* tree 2 */
+    1,6,5,2, /* tree 3 */
+    7,0,3,4, /* tree 4 */
+    1,6,5,2, /* tree 5 */
+    7,0,3,4, /* tree 6 */
+    1,6,5,2, /* tree 7 */
+    7,0,3,4, /* tree 8 */
+    1,6,5,2, /* tree 9 */
   };
   const p4est_topidx_t tree_to_corner[10 * 4] = {
     -1,  -1,  0,  -1, /* tree 0 */
@@ -138,7 +138,7 @@ p4est_connectivity_new_icosahedron (void)
 				 tree_to_corner, ctt_offset,
 				 corner_to_tree, corner_to_corner);
   
-  printf("\nconnectivity good : %d\n",p4est_connectivity_is_valid (conn));
+  P4EST_GLOBAL_INFOF("Is connectivity ok : %d\n",p4est_connectivity_is_valid (conn));
   P4EST_ASSERT (p4est_connectivity_is_valid (conn));
   
 
@@ -274,14 +274,14 @@ p4est_geometry_icosahedron_X (p4est_geometry_t * geom,
    */
   const int tree_to_nodes[10*4] = {
     1 ,  6,  0,  2, 
-    2 ,  7,  0,  3,
-    3 ,  8,  0,  4,
-    4 ,  9,  0,  5,
-    5 , 10,  0,  1,
     6 , 11,  2,  7,
+    2 ,  7,  0,  3,
     7 , 11,  3,  8,
+    3 ,  8,  0,  4,
     8 , 11,  4,  9,
+    4 ,  9,  0,  5,
     9 , 11,  5, 10,
+    5 , 10,  0,  1,
     10, 11,  1,  6,
   };
 

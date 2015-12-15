@@ -534,6 +534,8 @@ main (int argc, char **argv)
   p4est_vtk_write_file (p4est, geom, "simple2_balanced");
   crc = p4est_checksum (p4est);
 
+  P4EST_GLOBAL_INFOF("Is p4est grid balanced ? : %d\n",p4est_is_balanced (p4est, P4EST_CONNECT_FULL));
+
   /* partition */
   p4est_partition (p4est, 0, NULL);
   p4est_vtk_write_file (p4est, geom, "simple2_partition");
