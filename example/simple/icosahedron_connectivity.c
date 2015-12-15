@@ -9,7 +9,7 @@
 #include "icosahedron_connectivity.h"
 
 /*
- * Nodes numbering
+ * Vextex numbering:
  *
  *    A00   A01   A02   A03   A04 
  *   /   \ /   \ /   \ /   \ /   \
@@ -33,7 +33,6 @@ p4est_connectivity_new_icosahedron (void)
   const p4est_topidx_t num_vertices = 22;
   const p4est_topidx_t num_trees    = 10;
   const p4est_topidx_t num_corners  =  2;
-  //const p4est_topidx_t num_ctt      = 10;
   const double         vertices[22 * 3] = {
     0.0 +   cos(M_PI/3),    sin(M_PI/3),  0.0, /* vertex 00 */
     1.0 +   cos(M_PI/3),    sin(M_PI/3),  0.0, /* vertex 01 */
@@ -230,7 +229,7 @@ p4est_geometry_icosahedron_X (p4est_geometry_t * geom,
   double              x, y, z;
   double              a = 0.5*icosahedron->a; /* icosahedron half edge length */
 
-  double              g = (1.0+sqrt(5.0))*0.5; /* *golden ratio */
+  double              g = (1.0+sqrt(5.0))*0.5; /* golden ratio */
   double              ga = a/g;
 
   /* these are reference coordinates in [0, 1]**d */
@@ -296,7 +295,6 @@ p4est_geometry_icosahedron_X (p4est_geometry_t * geom,
   /* use bilinear SLERP :  spherical bilinear interpolation */
   {
     int    j;
-    double theta1, theta2; /* angle for SLERP (interpolation) */
     
     /* use tree to nodes mapping to get nodes index of current tree */
     const int i0 = tree_to_nodes[which_tree*4+0];
@@ -310,35 +308,38 @@ p4est_geometry_icosahedron_X (p4est_geometry_t * geom,
     const double n2[3] = { N[i2*3 + 0], N[i2*3 + 1], N[i2*3 + 2] };
     const double n3[3] = { N[i3*3 + 0], N[i3*3 + 1], N[i3*3 + 2] };
     double norme2 = n0[0]*n0[0] + n0[1]*n0[1] + n0[2]*n0[2];
-    double dot1   = n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2];
-    double dot2   = n0[0]*n2[0] + n0[1]*n2[1] + n0[2]*n2[2];
-    theta1 = acos(dot1/norme2);
-    theta2 = acos(dot2/norme2);
 
-    /* actual computation of bilinear slerp */
+    /* 1. apply slerp 
+     * - between n0 and n1 
+     * - between n2 and n3
+     */
+    double xyz01[3]; // slerp along n0 -> n1
+    double xyz23[3]; // slerp along n2 -> n3
+    double dot1   = n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2];
+    double theta1 = acos(dot1/norme2);
+
+    for (j=0; j<3; ++j) {
+      xyz01[j] = 
+	sin((1.0-eta_x)*theta1)/sin(theta1)*n0[j]+
+	sin((    eta_x)*theta1)/sin(theta1)*n1[j];
+      xyz23[j] = 
+	sin((1.0-eta_x)*theta1)/sin(theta1)*n2[j]+
+	sin((    eta_x)*theta1)/sin(theta1)*n3[j];
+    }
+
+    /* apply slerp between xyz01 and xyz23 */
+    double dot2 = xyz01[0]*xyz23[0] + xyz01[1]*xyz23[1] + xyz01[2]*xyz23[2];
+    double theta2 = acos(dot2/norme2);
     for (j=0; j<3; ++j) {
       xyz[j] = 
-	sin((1.0-eta_y)*theta2)/sin(theta2) *
-	( sin((1.0-eta_x)*theta1)/sin(theta1)*n0[j]+
-	  sin((    eta_x)*theta1)/sin(theta1)*n1[j]) +
-	sin((    eta_y)*theta2)/sin(theta2) *
-	( sin((1.0-eta_x)*theta1)/sin(theta1)*n2[j]+
-	  sin((    eta_x)*theta1)/sin(theta1)*n3[j]);
+	sin((1.0-eta_y)*theta2)/sin(theta2)*xyz01[j]+
+	sin((    eta_y)*theta2)/sin(theta2)*xyz23[j];
     }
 
-    if (dot1<0) {
-      printf("####### %d %d %d %d | %g %g || %g %g %g || %g %g %g|\n",i0,i1,i2,i3, 
-	     dot1, dot2,
-	     n0[0],n0[1],n0[2],
-	     n1[0],n1[1],n1[2]
-	     );
-    }
-
-    /* printf("DEBUG : %g | %g %g %g | %g %g | %g %g | %g %g\n",norme2,  */
-    /* 	   xyz[0],xyz[1],xyz[2],  */
-    /* 	   theta1, theta2, */
-    /* 	   dot1, norme2, */
-    /* 	   eta_x, eta_y); */
+    /* printf("DEBUG : %g  %g %g | %g %g %g | \n",norme2, norme, */
+    /* 	   xyz[0]*xyz[0] + xyz[1]*xyz[1] + xyz[2]*xyz[2], */
+    /* 	   xyz[0],xyz[1],xyz[2] */
+    /* 	   ); */
 
   } /* end of bilinear slerp */
 
