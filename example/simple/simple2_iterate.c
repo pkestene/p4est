@@ -197,6 +197,42 @@ refine_evil3_fn (p4est_t * p4est, p4est_topidx_t which_tree,
 }
 
 static int
+refine_icosahedron_fn (p4est_t * p4est, p4est_topidx_t which_tree,
+		       p4est_quadrant_t * quadrant)
+{
+
+  p4est_geometry_t *geom = (p4est_geometry_t *) p4est->user_pointer;
+
+  /* logical coordinates */
+  double              xyz[3] = { 0, 0, 0 };
+
+  /* physical coordinates */
+  double              XYZ[3] = { 0, 0, 0 };
+
+  double h2 = 0.5 * P4EST_QUADRANT_LEN (quadrant->level) / P4EST_ROOT_LEN;
+  const double        intsize = 1.0 / P4EST_ROOT_LEN;
+
+  /* 
+   * get coordinates at cell center
+   */
+  xyz[0] = intsize*quadrant->x + h2;
+  xyz[1] = intsize*quadrant->y + h2;
+#ifdef P4_TO_P8
+  xyz[2] = intsize*quadrant->z + h2;
+#endif
+  
+  // from logical coordinates to physical coordinates (cartesian)
+  geom->X (geom, which_tree, xyz, XYZ);
+
+  if (quadrant->level > 6)
+    return 0;
+  if (XYZ[2]>0 && quadrant->level>=3)
+    return 0;
+
+  return 1;
+}
+
+static int
 coarsen_evil_fn (p4est_t * p4est, p4est_topidx_t which_tree,
                  p4est_quadrant_t * q[])
 {
@@ -435,6 +471,10 @@ main (int argc, char **argv)
     refine_fn = refine_evil3_fn;
     coarsen_fn = NULL;
   }
+  else if (config == P4EST_CONFIG_ICOSAHEDRON) {
+    refine_fn = refine_icosahedron_fn;
+    coarsen_fn = NULL;
+  }
   else {
     refine_fn = refine_normal_fn;
     coarsen_fn = NULL;
@@ -519,7 +559,7 @@ main (int argc, char **argv)
     connectivity = p4est_connectivity_new_unitsquare ();
   }
   p4est = p4est_new_ext (mpi->mpicomm, connectivity, 15, 0, 0,
-                         sizeof (user_data_t), init_fn, NULL);
+                         sizeof (user_data_t), init_fn, geom);
   p4est_vtk_write_file (p4est, geom, "simple2_new");
 
   /* refinement and coarsening */
