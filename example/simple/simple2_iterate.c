@@ -547,13 +547,13 @@ main (int argc, char **argv)
 						rMax);
   }
   else if (config == P4EST_CONFIG_ICOSAHEDRON) {
-    double a = 1.0;
+    double R = 1.0; /* sphere radius default value */
 
     if (argc >= 4)
-      a = atof (argv[3]);
+      R = atof (argv[3]);
 
     connectivity = p4est_connectivity_new_icosahedron ();
-    geom = p4est_geometry_new_icosahedron (connectivity, a);
+    geom = p4est_geometry_new_icosahedron (connectivity, R);
   }
   else {
     connectivity = p4est_connectivity_new_unitsquare ();

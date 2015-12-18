@@ -200,7 +200,7 @@ p4est_geometry_builtin_type_t;
 typedef struct p4est_geometry_builtin_icosahedron
 {
   p4est_geometry_builtin_type_t type;
-  double                           a; /* size of an edge */
+  double                           R; /* sphere radius */
 }
 p4est_geometry_builtin_icosahedron_t;
 
@@ -227,10 +227,13 @@ p4est_geometry_icosahedron_X (p4est_geometry_t * geom,
   const struct p4est_geometry_builtin_icosahedron *icosahedron
     = &((p4est_geometry_builtin_t *) geom)->p.icosahedron;
   double              x, y, z;
-  double              a = 0.5*icosahedron->a; /* icosahedron half edge length */
-
+  double              a = 1.0;
   double              g = (1.0+sqrt(5.0))*0.5; /* golden ratio */
   double              ga = a/g;
+  double              r = sqrt( (5.0-sqrt(5.0))*0.5 ); /* sqrt(a*a+ga*ga) -> current radius */
+
+  double              R = icosahedron->R; /* target sphere radius */
+  double              radius_ratio = R/r;
 
   /* these are reference coordinates in [0, 1]**d */
   double              eta_x, eta_y, eta_z = 0.;
@@ -334,9 +337,10 @@ p4est_geometry_icosahedron_X (p4est_geometry_t * geom,
       xyz[j] = 
 	sin((1.0-eta_y)*theta2)/sin(theta2)*xyz01[j]+
 	sin((    eta_y)*theta2)/sin(theta2)*xyz23[j];
+      xyz[j] *= radius_ratio; /* rescale coordinates to target radius */
     }
 
-    /* printf("DEBUG : %g  %g %g | %g %g %g | \n",norme2, norme, */
+    /* printf("DEBUG : %g | %g %g %g | \n", */
     /* 	   xyz[0]*xyz[0] + xyz[1]*xyz[1] + xyz[2]*xyz[2], */
     /* 	   xyz[0],xyz[1],xyz[2] */
     /* 	   ); */
@@ -346,7 +350,7 @@ p4est_geometry_icosahedron_X (p4est_geometry_t * geom,
 } /* p4est_geometry_icosahedron_X */
 
 p4est_geometry_t   *
-p4est_geometry_new_icosahedron (p4est_connectivity_t * conn, double a)
+p4est_geometry_new_icosahedron (p4est_connectivity_t * conn, double R)
 {
   p4est_geometry_builtin_t *builtin;
   struct p4est_geometry_builtin_icosahedron *icosahedron;
@@ -355,7 +359,7 @@ p4est_geometry_new_icosahedron (p4est_connectivity_t * conn, double a)
 
   icosahedron = &builtin->p.icosahedron;
   icosahedron->type = P4EST_GEOMETRY_BUILTIN_ICOSAHEDRON;
-  icosahedron->a = a;
+  icosahedron->R = R;
 
   builtin->geom.name = "p4est_icosahedron";
   builtin->geom.user = conn;
