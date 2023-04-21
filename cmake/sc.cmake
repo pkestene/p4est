@@ -4,6 +4,9 @@ include(${CMAKE_CURRENT_LIST_DIR}/GitSubmodule.cmake)
 
 set(sc_external true CACHE BOOL "build sc library" FORCE)
 
+# this option value is transferred transitively to option "zlib" of libsc
+option(zlib "turn on if you want libsc to build zlib" on)
+
 git_submodule("${PROJECT_SOURCE_DIR}/sc")
 
 # --- libsc externalProject
@@ -31,6 +34,7 @@ set(cmake_sc_args
 -DBUILD_TESTING:BOOL=false
 -Dmpi:BOOL=${mpi}
 -Dopenmp:BOOL=${openmp}
+-Dzlib:BOOL=${zlib}
 )
 
 ExternalProject_Add(SC
