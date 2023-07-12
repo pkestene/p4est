@@ -31,6 +31,7 @@ set(cmake_sc_args
 -DBUILD_TESTING:BOOL=false
 -Dmpi:BOOL=${mpi}
 -Dopenmp:BOOL=${openmp}
+-Dzlib:BOOL=${libsc_builds_zlib}
 )
 
 ExternalProject_Add(SC

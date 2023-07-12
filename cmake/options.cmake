@@ -10,6 +10,7 @@ endif()
 
 option(mpi "use MPI library" off)
 option(openmp "use OpenMP" off)
+option(libsc_builds_zlib "require that libsc builds zlib" off)
 
 set(CMAKE_TLS_VERIFY on)
 
